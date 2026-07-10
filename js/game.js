@@ -1,6 +1,5 @@
-// ========================================
-// GAME STATE & CONFIG
-// ========================================
+// Main game state, UI rendering, flow control, online sync, chat, and event bindings.
+
 const GameState = {
     board: ['', '', '', '', '', '', '', '', ''],
     currentPlayer: 'X',
@@ -16,13 +15,6 @@ const GameState = {
     scoreboard: {},
 };
 
-// ========================================
-// UI RENDERING
-// ========================================
-
-/**
- * Render board
- */
 function renderBoard() {
     const cells = document.querySelectorAll('.cell');
     cells.forEach((cell, index) => {
@@ -41,9 +33,6 @@ function renderBoard() {
     });
 }
 
-/**
- * Render result board
- */
 function renderResultBoard() {
     const resultCells = document.querySelectorAll('.result-cell');
     resultCells.forEach((cell, index) => {
@@ -56,9 +45,6 @@ function renderResultBoard() {
     });
 }
 
-/**
- * Update current player display
- */
 function updateCurrentPlayerDisplay() {
     const playerName = GameState.currentPlayer === 'X'
         ? GameState.player1Name
@@ -66,18 +52,12 @@ function updateCurrentPlayerDisplay() {
     document.getElementById('currentPlayer').textContent = `${playerName}'s Turn`;
 }
 
-/**
- * Highlight winning cells
- */
 function highlightWinningCells(winningCells) {
     winningCells.forEach(index => {
         document.querySelector(`.cell[data-index="${index}"]`).classList.add('winning-cell');
     });
 }
 
-/**
- * Shake board on draw
- */
 function shakeBoard() {
     const board = document.getElementById('board');
     for (let i = 0; i < 6; i++) {
@@ -90,9 +70,6 @@ function shakeBoard() {
     }, 300);
 }
 
-/**
- * Update scoreboard UI
- */
 function updateScoreboard() {
     const scoreboardContent = document.getElementById('scoreboardContent');
     scoreboardContent.innerHTML = '';
@@ -128,7 +105,6 @@ function updateScoreboard() {
         scoreboardContent.appendChild(entry);
     });
 
-    // Add history section
     if (GameState.gameHistory.length > 0) {
         const historySection = document.createElement('div');
         historySection.className = 'history-section';
@@ -145,13 +121,6 @@ function updateScoreboard() {
     }
 }
 
-// ========================================
-// GAME FLOW
-// ========================================
-
-/**
- * Initialize a new game
- */
 function initializeGame() {
     GameState.board = ['', '', '', '', '', '', '', '', ''];
     GameState.currentPlayer = 'X';
@@ -171,16 +140,11 @@ function initializeGame() {
     }
 }
 
-/**
- * Handle cell click
- */
 function handleCellClick(index) {
     if (!GameState.gameActive || GameState.board[index] !== '') return;
 
-    // Computer shouldn't click on behalf of player
     if (GameState.gameMode === 'pvc' && GameState.currentPlayer === 'O') return;
 
-    // In online mode, check if it's the current player's turn
     if (GameState.gameMode === 'online') {
         const isHost = GameState.isOnlineHost;
         const playerSymbol = isHost ? 'X' : 'O';
@@ -193,9 +157,6 @@ function handleCellClick(index) {
     makeMove(index);
 }
 
-/**
- * Make a move
- */
 function makeMove(index) {
     if (!GameState.gameActive || GameState.board[index] !== '') return;
 
@@ -217,28 +178,20 @@ function makeMove(index) {
     GameState.currentPlayer = GameState.currentPlayer === 'X' ? 'O' : 'X';
     updateCurrentPlayerDisplay();
 
-    // Broadcast move if online
     if (GameState.gameMode === 'online') {
         broadcastGameState();
     }
 
-    // Computer move
     if (GameState.gameMode === 'pvc' && GameState.currentPlayer === 'O') {
         setTimeout(makeComputerMove, 400 + Math.random() * 200);
     }
 }
 
-/**
- * Make computer move
- */
 function makeComputerMove() {
     const move = getComputerMove(GameState.board, GameState.computerDifficulty);
     makeMove(move);
 }
 
-/**
- * End game
- */
 function endGame(result, winningCells = null) {
     GameState.gameActive = false;
 
@@ -247,8 +200,6 @@ function endGame(result, winningCells = null) {
         shakeBoard();
         document.getElementById('resultTitle').textContent = "It's a Draw!";
         document.getElementById('resultMessage').textContent = 'Both players played perfectly!';
-
-        // Update scores
         updateScoreboardOnGameEnd('draw');
     } else {
         SoundEngine.playWin();
@@ -256,12 +207,9 @@ function endGame(result, winningCells = null) {
         const winnerName = result === 'X' ? GameState.player1Name : GameState.player2Name;
         document.getElementById('resultTitle').textContent = 'You Win!';
         document.getElementById('resultMessage').textContent = `${winnerName} wins!`;
-
-        // Update scores
         updateScoreboardOnGameEnd(result === 'X' ? 'player1' : 'player2');
     }
 
-    // Add to history
     const timestamp = new Date().toLocaleString();
     const gameRecord = {
         date: timestamp,
@@ -277,9 +225,6 @@ function endGame(result, winningCells = null) {
     showScreen('resultScreen');
 }
 
-/**
- * Update scoreboard on game end
- */
 function updateScoreboardOnGameEnd(result) {
     const p1 = GameState.player1Name;
     const p2 = GameState.player2Name;
@@ -306,13 +251,6 @@ function updateScoreboardOnGameEnd(result) {
     updateScoreboard();
 }
 
-// ========================================
-// MODE SETUP
-// ========================================
-
-/**
- * Setup Player vs Player mode
- */
 function setupPVP() {
     GameState.gameMode = 'pvp';
     GameState.player1Name = 'Player 1';
@@ -341,9 +279,6 @@ function setupPVP() {
     showScreen('modeSelectScreen');
 }
 
-/**
- * Setup Player vs Computer mode
- */
 function setupPVC() {
     GameState.gameMode = 'pvc';
     GameState.player2Name = 'Computer';
@@ -382,9 +317,6 @@ function setupPVC() {
     showScreen('modeSelectScreen');
 }
 
-/**
- * Setup Online mode - choose to host or join
- */
 function setupOnline() {
     const content = document.getElementById('modeSelectContent');
     content.innerHTML = `
@@ -403,9 +335,6 @@ function setupOnline() {
     showScreen('modeSelectScreen');
 }
 
-/**
- * Setup as online host
- */
 function setupOnlineHost() {
     GameState.gameMode = 'online';
     GameState.roomCode = generateRoomCode();
@@ -435,7 +364,6 @@ function setupOnlineHost() {
         GameState.player1Name = document.getElementById('player1Input').value || 'Player 1';
         GameState.onlineOpponentConnected = false;
 
-        // Initialize room data
         const roomData = {
             player1Name: GameState.player1Name,
             player2Name: null,
@@ -451,9 +379,6 @@ function setupOnlineHost() {
     showScreen('modeSelectScreen');
 }
 
-/**
- * Setup as online joiner
- */
 function setupOnlineJoin() {
     GameState.gameMode = 'online';
     GameState.isOnlineHost = false;
@@ -489,7 +414,6 @@ function setupOnlineJoin() {
         GameState.player1Name = roomData.player1Name;
         GameState.player2Name = document.getElementById('player1Input').value || 'Player 2';
 
-        // Update room data with second player
         roomData.player2Name = GameState.player2Name;
         saveState(`room_${roomCode}`, roomData);
 
@@ -499,9 +423,6 @@ function setupOnlineJoin() {
     showScreen('modeSelectScreen');
 }
 
-/**
- * Show waiting screen for online mode
- */
 function showWaitingScreen() {
     document.getElementById('roomCodeDisplay').textContent = GameState.roomCode;
     document.getElementById('waitingMessage').textContent = 'Share this room code with your opponent (open this link in another tab/window):';
@@ -513,9 +434,6 @@ function showWaitingScreen() {
     showScreen('waitingScreen');
 }
 
-/**
- * Listen for online opponent joining
- */
 function listenForOnlineOpponent() {
     const checkInterval = setInterval(() => {
         const roomData = loadState(`room_${GameState.roomCode}`);
@@ -527,15 +445,10 @@ function listenForOnlineOpponent() {
         }
     }, 500);
 
-    // Timeout after 5 minutes
     setTimeout(() => clearInterval(checkInterval), 300000);
 }
 
-/**
- * Update online game UI
- */
 function updateOnlineUI() {
-    // Sync board with localStorage while preserving player names
     const roomData = loadState(`room_${GameState.roomCode}`) || {};
     roomData.player1Name = GameState.player1Name;
     roomData.player2Name = GameState.player2Name;
@@ -544,9 +457,6 @@ function updateOnlineUI() {
     saveState(`room_${GameState.roomCode}`, roomData);
 }
 
-/**
- * Broadcast game state for online multiplayer
- */
 function broadcastGameState() {
     const roomData = loadState(`room_${GameState.roomCode}`) || {};
     roomData.board = GameState.board;
@@ -556,9 +466,7 @@ function broadcastGameState() {
     saveState(`room_${GameState.roomCode}`, roomData);
 }
 
-/**
- * Listen for opponent's moves via storage event
- */
+// Synced storage listener for multiplayer
 window.addEventListener('storage', (e) => {
     if (e.key && e.key.startsWith('room_')) {
         const roomData = JSON.parse(e.newValue);
@@ -578,13 +486,6 @@ window.addEventListener('storage', (e) => {
     }
 });
 
-// ========================================
-// CHAT SYSTEM (Online)
-// ========================================
-
-/**
- * Send chat message
- */
 function sendChatMessage() {
     const input = document.getElementById('chatInput');
     const message = input.value.trim();
@@ -597,7 +498,6 @@ function sendChatMessage() {
     chatMessages.appendChild(msgDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 
-    // Store message
     const messages = loadState(`chat_${GameState.roomCode}`) || [];
     messages.push({ sender: GameState.player1Name, text: message, timestamp: Date.now() });
     saveState(`chat_${GameState.roomCode}`, messages);
@@ -605,9 +505,7 @@ function sendChatMessage() {
     input.value = '';
 }
 
-/**
- * Listen for chat messages
- */
+// Check for new chat messages
 setInterval(() => {
     if (GameState.gameMode === 'online') {
         const messages = loadState(`chat_${GameState.roomCode}`) || [];
@@ -625,11 +523,7 @@ setInterval(() => {
     }
 }, 1000);
 
-// ========================================
-// EVENT LISTENERS
-// ========================================
-
-// Home screen mode buttons
+// Setup click handlers for buttons
 document.querySelectorAll('.mode-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
         const mode = e.target.dataset.mode;
@@ -639,7 +533,6 @@ document.querySelectorAll('.mode-btn').forEach(btn => {
     });
 });
 
-// Theme buttons
 document.querySelectorAll('[data-theme]').forEach(btn => {
     if (btn.classList.contains('theme-btn')) {
         btn.addEventListener('click', (e) => {
@@ -650,7 +543,6 @@ document.querySelectorAll('[data-theme]').forEach(btn => {
     }
 });
 
-// Board cells
 document.querySelectorAll('.cell').forEach(cell => {
     cell.addEventListener('click', (e) => {
         const index = parseInt(e.currentTarget.dataset.index);
@@ -665,16 +557,13 @@ document.querySelectorAll('.cell').forEach(cell => {
     cell.setAttribute('tabindex', '0');
 });
 
-// Game control buttons
 document.getElementById('newGameBtn').addEventListener('click', initializeGame);
 document.getElementById('menuBtn').addEventListener('click', () => showScreen('homeScreen'));
 document.getElementById('backBtn').addEventListener('click', () => showScreen('homeScreen'));
 
-// Result screen buttons
 document.getElementById('rematchBtn').addEventListener('click', initializeGame);
 document.getElementById('homeBtn').addEventListener('click', () => showScreen('homeScreen'));
 
-// Scoreboard
 document.getElementById('scoreboardToggle').addEventListener('click', () => {
     document.getElementById('scoreboardPanel').classList.toggle('open');
 });
@@ -686,17 +575,12 @@ document.getElementById('clearScoreboardBtn').addEventListener('click', () => {
     }
 });
 
-// Chat
 document.getElementById('chatSendBtn').addEventListener('click', sendChatMessage);
 document.getElementById('chatInput').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') sendChatMessage();
 });
 
-// ========================================
-// INITIALIZATION
-// ========================================
 window.addEventListener('DOMContentLoaded', () => {
-    // Load saved data
     const savedData = loadAllSavedData();
     GameState.gameHistory = savedData.history;
     GameState.scoreboard = savedData.scoreboard;
@@ -704,7 +588,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
     updateScoreboard();
 
-    // Set theme button active state
     const themeBtn = document.querySelector(`[data-theme="${GameState.currentTheme}"]`);
     if (themeBtn) {
         themeBtn.classList.add('active');

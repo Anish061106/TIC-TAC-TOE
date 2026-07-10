@@ -1,13 +1,9 @@
-// ========================================
-// SOUND ENGINE (Web Audio API)
-// ========================================
+// Sound Synthesizer using Web Audio API
 
 const SoundEngine = (() => {
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
-    /**
-     * Play a sine wave tone
-     */
+    // Plays a simple sine tone of specified frequency and duration
     function playTone(frequency, duration, volume = 0.3) {
         if (!isSoundEnabled()) return;
 
@@ -27,32 +23,23 @@ const SoundEngine = (() => {
         oscillator.stop(audioContext.currentTime + duration);
     }
 
-    /**
-     * Play click sound
-     */
     function playClick() {
         playTone(400, 0.1, 0.2);
     }
 
-    /**
-     * Play win sound (ascending tones)
-     */
+    // Play ascending win chime
     function playWin() {
         playTone(523, 0.2, 0.3); // C
         setTimeout(() => playTone(659, 0.2, 0.3), 150); // E
         setTimeout(() => playTone(784, 0.3, 0.3), 300); // G
     }
 
-    /**
-     * Play draw sound (flat buzz)
-     */
+    // Flat draw buzz
     function playDraw() {
         playTone(200, 0.3, 0.2);
     }
 
-    /**
-     * Play whoosh sound
-     */
+    // Square wave whoosh sound transition
     function playWhoosh() {
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();

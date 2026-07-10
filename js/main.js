@@ -1,10 +1,5 @@
-// ========================================
-// MAIN UTILITIES
-// ========================================
+// Global utilities and initialization functions
 
-/**
- * Switch screen
- */
 function showScreen(screenId) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     const screen = document.getElementById(screenId);
@@ -13,16 +8,11 @@ function showScreen(screenId) {
     }
 }
 
-/**
- * Generate room code
- */
 function generateRoomCode() {
     return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
-/**
- * Setup navigation active state
- */
+// Highlights the current navigation link active state
 function setupNavigation() {
     const currentPage = window.location.pathname.split('/').pop() || 'index.html';
     document.querySelectorAll('.nav-links a').forEach(link => {
@@ -35,9 +25,6 @@ function setupNavigation() {
     });
 }
 
-/**
- * Initialize theme on page load
- */
 function initializeTheme() {
     const theme = getTheme();
     applyTheme(theme);
@@ -48,9 +35,6 @@ function initializeTheme() {
     }
 }
 
-/**
- * Initialize sound toggle
- */
 function initializeSoundToggle() {
     const soundToggle = document.getElementById('soundToggle');
     if (soundToggle) {
@@ -64,9 +48,6 @@ function initializeSoundToggle() {
     }
 }
 
-/**
- * Update sound toggle UI
- */
 function updateSoundToggleUI() {
     const btn = document.getElementById('soundToggle');
     if (btn) {
@@ -74,9 +55,6 @@ function updateSoundToggleUI() {
     }
 }
 
-/**
- * Setup theme buttons
- */
 function setupThemeButtons() {
     document.querySelectorAll('[data-theme]').forEach(btn => {
         if (btn.classList.contains('theme-btn')) {
@@ -89,19 +67,9 @@ function setupThemeButtons() {
     });
 }
 
-/**
- * Global initialization
- */
 function initializeApp() {
     setupNavigation();
     initializeTheme();
     initializeSoundToggle();
     setupThemeButtons();
-}
-
-// Initialize on DOM ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeApp);
-} else {
-    initializeApp();
 }

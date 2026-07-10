@@ -1,10 +1,5 @@
-// ========================================
-// GAME LOGIC
-// ========================================
+// Helper logic for winning checks, available moves, minimax AI, and symbols
 
-/**
- * Check for winner
- */
 function checkWinner(board) {
     const winConditions = [
         [0, 1, 2],
@@ -26,25 +21,17 @@ function checkWinner(board) {
     return null;
 }
 
-/**
- * Check for draw
- */
 function checkDraw(board) {
     return board.every(cell => cell !== '');
 }
 
-/**
- * Get available moves
- */
 function getAvailableMoves(board) {
     return board
         .map((cell, index) => cell === '' ? index : null)
         .filter(index => index !== null);
 }
 
-/**
- * Minimax algorithm (Hard AI)
- */
+// minimax algorithm for the unbeatable Hard AI
 function minimax(board, depth = 0, isMaximizing = true) {
     const result = checkWinner(board);
     if (result) {
@@ -79,19 +66,16 @@ function minimax(board, depth = 0, isMaximizing = true) {
     }
 }
 
-/**
- * Get computer move
- */
+// computes the next move for the AI opponent based on difficulty level
 function getComputerMove(board, difficulty) {
     const availableMoves = getAvailableMoves(board);
 
     if (difficulty === 'easy') {
-        // Random move
         return availableMoves[Math.floor(Math.random() * availableMoves.length)];
     }
 
     if (difficulty === 'medium') {
-        // Check if can win
+        // 1. Try to win if possible
         for (let move of availableMoves) {
             const testBoard = [...board];
             testBoard[move] = 'O';
@@ -100,7 +84,7 @@ function getComputerMove(board, difficulty) {
             }
         }
 
-        // Check if need to block
+        // 2. Block the opponent's winning move
         for (let move of availableMoves) {
             const testBoard = [...board];
             testBoard[move] = 'X';
@@ -109,12 +93,11 @@ function getComputerMove(board, difficulty) {
             }
         }
 
-        // Random move
+        // Otherwise random
         return availableMoves[Math.floor(Math.random() * availableMoves.length)];
     }
 
     if (difficulty === 'hard') {
-        // Minimax
         let bestScore = -Infinity;
         let bestMove = availableMoves[0];
 
@@ -132,9 +115,7 @@ function getComputerMove(board, difficulty) {
     }
 }
 
-/**
- * Create SVG X symbol
- */
+// DOM SVG creation helpers
 function createXSymbol() {
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('viewBox', '0 0 100 100');
@@ -145,9 +126,6 @@ function createXSymbol() {
     return svg;
 }
 
-/**
- * Create SVG O symbol
- */
 function createOSymbol() {
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('viewBox', '0 0 100 100');
