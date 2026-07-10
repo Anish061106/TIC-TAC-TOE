@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Play Tic Tac Toe - Game</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Space+Grotesk:wght@400;600;700&family=Orbitron:wght@400;700;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/storage.js"></script>
+    <script src="js/sound.js"></script>
+    <script src="js/game-logic.js"></script>
+    <script src="js/main.js"></script>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">TIC TAC TOE</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="game.html" class="active">Play</a></li>
+                <li><a href="rules.html">Rules</a></li>
+                <li><a href="leaderboard.html">Stats</a></li>
+                <li><a href="settings.html">Settings</a></li>
+            </ul>
+            <div class="nav-controls">
+                <button id="soundToggle" title="Toggle Sound">🔊</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Home Screen -->
+    <div id="homeScreen" class="screen active">
+        <div class="main-container">
+            <div class="header">
+                <div class="title">TIC TAC TOE</div>
+                <div class="subtitle">Select Game Mode</div>
+            </div>
+
+            <div class="theme-picker">
+                <button class="theme-btn active" data-theme="classic">Classic</button>
+                <button class="theme-btn" data-theme="neon">Neon</button>
+                <button class="theme-btn" data-theme="wooden">Wooden</button>
+                <button class="theme-btn" data-theme="pastel">Pastel</button>
+            </div>
+
+            <div class="home-content">
+                <div class="mode-buttons">
+                    <button class="mode-btn" data-mode="pvp">👥 Local</button>
+                    <button class="mode-btn" data-mode="pvc">🤖 Computer</button>
+                    <button class="mode-btn" data-mode="online">🌐 Online</button>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 20px;">
+                <a href="index.html" class="mode-btn" style="text-decoration: none;">← Back to Home</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mode Select Screen -->
+    <div id="modeSelectScreen" class="screen">
+        <div class="main-container">
+            <div class="header">
+                <div class="title">Setup Game</div>
+            </div>
+
+            <div class="mode-select-content" id="modeSelectContent">
+                <!-- Dynamic content based on mode -->
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="game-btn" id="startGameBtn">Start Game</button>
+                <button class="game-btn" id="backBtn">Back</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="gameScreen" class="screen">
+        <div class="main-container">
+            <div class="game-header">
+                <div class="current-player" id="currentPlayer">Player X's Turn</div>
+                <div class="control-buttons">
+                    <button id="newGameBtn">New Game</button>
+                    <button id="menuBtn">Menu</button>
+                </div>
+            </div>
+
+            <div class="board" id="board">
+                <div class="cell" data-index="0"></div>
+                <div class="cell" data-index="1"></div>
+                <div class="cell" data-index="2"></div>
+                <div class="cell" data-index="3"></div>
+                <div class="cell" data-index="4"></div>
+                <div class="cell" data-index="5"></div>
+                <div class="cell" data-index="6"></div>
+                <div class="cell" data-index="7"></div>
+                <div class="cell" data-index="8"></div>
+            </div>
+
+            <div class="chat-panel" id="chatPanel">
+                <div class="chat-messages" id="chatMessages"></div>
+                <div class="chat-input-group">
+                    <input type="text" id="chatInput" placeholder="Type message...">
+                    <button id="chatSendBtn">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Waiting Screen (Online Mode) -->
+    <div id="waitingScreen" class="screen">
+        <div class="main-container">
+            <div class="waiting-content">
+                <div class="title">Waiting for Opponent</div>
+                <div class="spinner"></div>
+                <div class="waiting-message" id="waitingMessage">Share this room code:</div>
+                <div class="room-code" id="roomCodeDisplay"></div>
+                <button class="copy-btn" id="copyRoomBtn">Copy Code</button>
+                <button class="game-btn" id="cancelWaitBtn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Screen -->
+    <div id="resultScreen" class="screen">
+        <div class="main-container">
+            <div class="result-content">
+                <div class="result-title" id="resultTitle">You Win!</div>
+                <div class="result-message" id="resultMessage">Congratulations!</div>
+
+                <div class="result-board" id="resultBoard">
+                    <div class="result-cell" data-index="0"></div>
+                    <div class="result-cell" data-index="1"></div>
+                    <div class="result-cell" data-index="2"></div>
+                    <div class="result-cell" data-index="3"></div>
+                    <div class="result-cell" data-index="4"></div>
+                    <div class="result-cell" data-index="5"></div>
+                    <div class="result-cell" data-index="6"></div>
+                    <div class="result-cell" data-index="7"></div>
+                    <div class="result-cell" data-index="8"></div>
+                </div>
+
+                <div class="result-buttons">
+                    <button class="game-btn" id="rematchBtn">Play Again</button>
+                    <button class="game-btn" id="homeBtn">Main Menu</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sound Toggle Button -->
+    <button class="sound-toggle" id="soundToggle" title="Toggle Sound">🔊</button>
+
+    <!-- Scoreboard Toggle Button -->
+    <button class="scoreboard-toggle" id="scoreboardToggle" title="View Scoreboard">📈</button>
+
+    <!-- Scoreboard Panel -->
+    <div class="scoreboard-panel" id="scoreboardPanel">
+        <div class="scoreboard-header">📊 Scoreboard</div>
+        <div id="scoreboardContent"></div>
+        <button class="clear-btn" id="clearScoreboardBtn">Clear Scoreboard</button>
+    </div>
+
+    <script src="js/game.js"></script>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            initializeApp();
+        });
+    </script>
+</body>
+
+</html>

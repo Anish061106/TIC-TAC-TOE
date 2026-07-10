@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Tic Tac Toe</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Space+Grotesk:wght@400;600;700&family=Orbitron:wght@400;700;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/storage.js"></script>
+    <script src="js/sound.js"></script>
+    <script src="js/main.js"></script>
+    <style>
+        .settings-container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .settings-section {
+            background: var(--secondary-color);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow);
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .settings-title {
+            font-size: 1.4em;
+            font-weight: 700;
+            color: var(--accent-color);
+            margin-bottom: 20px;
+        }
+
+        .setting-item {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--cell-border);
+        }
+
+        .setting-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .setting-label {
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .setting-description {
+            font-size: 0.9em;
+            opacity: 0.7;
+            margin-bottom: 10px;
+        }
+
+        .theme-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+        }
+
+        .theme-option {
+            padding: 12px;
+            border: 2px solid var(--cell-border);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: var(--cell-bg);
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .theme-option:hover {
+            transform: translateY(-2px);
+        }
+
+        .theme-option.active {
+            background: var(--accent-color);
+            color: var(--primary-color);
+            border-color: var(--accent-color);
+        }
+
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .toggle-btn {
+            width: 50px;
+            height: 28px;
+            border-radius: 14px;
+            border: none;
+            background: #ccc;
+            cursor: pointer;
+            position: relative;
+            transition: background 0.3s ease;
+        }
+
+        .toggle-btn.active {
+            background: var(--accent-color);
+        }
+
+        .toggle-btn::after {
+            content: '';
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: white;
+            top: 2px;
+            left: 2px;
+            transition: left 0.3s ease;
+        }
+
+        .toggle-btn.active::after {
+            left: 24px;
+        }
+
+        .info-box {
+            background: var(--cell-bg);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-color);
+            font-size: 0.95em;
+            margin-top: 20px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .reset-btn {
+            padding: 12px 20px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .reset-btn:hover {
+            background: #ff5252;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">TIC TAC TOE</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="game.html">Play</a></li>
+                <li><a href="rules.html">Rules</a></li>
+                <li><a href="leaderboard.html">Stats</a></li>
+                <li><a href="settings.html" class="active">Settings</a></li>
+            </ul>
+            <div class="nav-controls">
+                <button id="soundToggle" title="Toggle Sound">🔊</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="settings-container">
+        <h1
+            style="font-family: 'Orbitron', sans-serif; font-size: 2.5em; color: var(--accent-color); margin-bottom: 30px;">
+            ⚙️ Settings</h1>
+
+        <!-- Theme Settings -->
+        <div class="settings-section">
+            <div class="settings-title">🎨 Theme</div>
+            <div class="setting-item">
+                <div class="setting-label">Choose Your Theme</div>
+                <div class="setting-description">Select a visual theme for the game. Your choice is saved automatically.
+                </div>
+                <div class="theme-grid">
+                    <button class="theme-option" data-theme="classic">🏛️ Classic</button>
+                    <button class="theme-option" data-theme="neon">🌌 Neon</button>
+                    <button class="theme-option" data-theme="wooden">🪵 Wooden</button>
+                    <button class="theme-option" data-theme="pastel">🌸 Pastel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sound Settings -->
+        <div class="settings-section">
+            <div class="settings-title">🔊 Sound</div>
+            <div class="setting-item">
+                <div class="setting-label">
+                    <span>Sound Effects</span>
+                    <div class="toggle-switch">
+                        <button class="toggle-btn" id="soundToggleSwitch"></button>
+                        <span id="soundStatus">On</span>
+                    </div>
+                </div>
+                <div class="setting-description">Enable or disable audio feedback when playing. Includes click sounds,
+                    win chimes, and more.</div>
+                <div style="margin-top: 15px;">
+                    <button class="mode-btn" id="testSoundBtn">🔔 Test Sound</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Preferences -->
+        <div class="settings-section">
+            <div class="settings-title">🎮 Preferences</div>
+            <div class="setting-item">
+                <div class="setting-label">Browser Storage</div>
+                <div class="setting-description">Your scores, game history, and preferences are stored locally in your
+                    browser using localStorage. No account or internet connection needed to store data.</div>
+                <div class="info-box">
+                    <strong>📌 Note:</strong> Data is stored on this device only. If you clear your browser data, all
+                    scores and history will be lost.
+                </div>
+            </div>
+        </div>
+
+        <!-- About -->
+        <div class="settings-section">
+            <div class="settings-title">ℹ️ About</div>
+            <div class="setting-item">
+                <div class="setting-description">
+                    <strong>Tic Tac Toe v1.0</strong><br>
+                    The ultimate modern take on a classic game.<br><br>
+                    <strong>Built With:</strong><br>
+                    • Vanilla HTML, CSS, JavaScript (ES6+)<br>
+                    • Web Audio API for sound synthesis<br>
+                    • localStorage for data persistence<br>
+                    • SVG for hand-crafted symbols<br><br>
+                    <strong>Features:</strong><br>
+                    • 3 Game Modes (Local, Computer, Online)<br>
+                    • 4 Beautiful Themes<br>
+                    • Advanced AI (Easy, Medium, Hard)<br>
+                    • Comprehensive Scoreboard<br>
+                    • Game History & Statistics<br>
+                    • Fully Responsive Design<br>
+                    • Keyboard Accessible<br><br>
+                    <strong>Zero Dependencies:</strong> No frameworks, no plugins, no external libraries. Pure
+                    JavaScript.
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Management -->
+        <div class="settings-section">
+            <div class="settings-title">🗑️ Data Management</div>
+            <div class="setting-item">
+                <div class="setting-label">Clear All Data</div>
+                <div class="setting-description">Reset all scores, game history, and preferences. This action cannot be
+                    undone.</div>
+                <div class="button-group">
+                    <button class="reset-btn" id="resetBtn">Clear All Data</button>
+                    <button class="mode-btn" id="exportBtn">📊 Export Stats</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div style="text-align: center; margin-top: 40px;">
+            <a href="game.html" class="btn btn-primary">Back to Game</a>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-title">TIC TAC TOE</div>
+            <div class="footer-text">The ultimate modern take on a classic game</div>
+            <div class="footer-links">
+                <a href="index.html">Home</a>
+                <a href="game.html">Play</a>
+                <a href="rules.html">Rules</a>
+                <a href="leaderboard.html">Stats</a>
+                <a href="settings.html">Settings</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Theme buttons
+        document.querySelectorAll('.theme-option').forEach(btn => {
+            const theme = getTheme();
+            if (btn.dataset.theme === theme) {
+                btn.classList.add('active');
+            }
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.theme-option').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                applyTheme(e.target.dataset.theme);
+                location.reload(); // Refresh to apply theme globally
+            });
+        });
+
+        // Sound toggle
+        function updateSoundUI() {
+            const soundEnabled = isSoundEnabled();
+            const toggle = document.getElementById('soundToggleSwitch');
+            const status = document.getElementById('soundStatus');
+
+            if (soundEnabled) {
+                toggle.classList.add('active');
+                status.textContent = 'On';
+            } else {
+                toggle.classList.remove('active');
+                status.textContent = 'Off';
+            }
+        }
+
+        document.getElementById('soundToggleSwitch').addEventListener('click', () => {
+            const newState = !isSoundEnabled();
+            setSoundEnabled(newState);
+            updateSoundUI();
+        });
+
+        // Test sound
+        document.getElementById('testSoundBtn').addEventListener('click', () => {
+            if (isSoundEnabled()) {
+                SoundEngine.playClick();
+            } else {
+                alert('Sound is disabled. Enable it first!');
+            }
+        });
+
+        // Reset all data
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            if (confirm('Are you ABSOLUTELY sure? This will delete all your game history and scores. This cannot be undone!')) {
+                localStorage.removeItem('tictactoe_scoreboard');
+                localStorage.removeItem('tictactoe_history');
+                alert('All data has been cleared.');
+                location.reload();
+            }
+        });
+
+        // Export stats
+        document.getElementById('exportBtn').addEventListener('click', () => {
+            const data = {
+                scoreboard: loadState('tictactoe_scoreboard') || {},
+                history: loadState('tictactoe_history') || {},
+                exportDate: new Date().toISOString()
+            };
+            const json = JSON.stringify(data, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `tictactoe-stats-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        // Initial setup
+        window.addEventListener('DOMContentLoaded', () => {
+            initializeApp();
+            updateSoundUI();
+        });
+    </script>
+</body>
+
+</html>

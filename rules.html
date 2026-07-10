@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rules - Tic Tac Toe</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Space+Grotesk:wght@400;600;700&family=Orbitron:wght@400;700;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/sound.js"></script>
+    <script src="js/main.js"></script>
+    <style>
+        .rules-content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .rule-section {
+            margin-bottom: 40px;
+        }
+
+        .rule-title {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: var(--accent-color);
+            margin-bottom: 15px;
+        }
+
+        .rule-description {
+            line-height: 1.8;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .rule-list {
+            list-style-position: inside;
+            margin: 15px 0;
+        }
+
+        .rule-list li {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        .difficulty-info {
+            background: var(--cell-bg);
+            padding: 15px;
+            border-left: 4px solid var(--accent-color);
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">TIC TAC TOE</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="game.html">Play</a></li>
+                <li><a href="rules.html" class="active">Rules</a></li>
+                <li><a href="leaderboard.html">Stats</a></li>
+                <li><a href="settings.html">Settings</a></li>
+            </ul>
+            <div class="nav-controls">
+                <button id="soundToggle" title="Toggle Sound">🔊</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="rules-content">
+        <h1
+            style="font-family: 'Orbitron', sans-serif; font-size: 2.5em; color: var(--accent-color); margin-bottom: 30px;">
+            How to Play</h1>
+
+        <div class="rule-section">
+            <div class="rule-title">🎮 Basic Objective</div>
+            <div class="rule-description">
+                Tic Tac Toe is a classic two-player game played on a 3×3 grid. The goal is to get three of your symbols
+                (X or O) in a row—either horizontally, vertically, or diagonally—before your opponent does.
+            </div>
+        </div>
+
+        <div class="rule-section">
+            <div class="rule-title">📋 Game Rules</div>
+            <ul class="rule-list">
+                <li><strong>Turn-based gameplay:</strong> Players take turns placing their symbol (X or O) on an empty
+                    cell of the grid.</li>
+                <li><strong>First player starts:</strong> X always goes first.</li>
+                <li><strong>One move per turn:</strong> Each player places exactly one symbol per turn.</li>
+                <li><strong>Win condition:</strong> Get three of your symbols in a row (horizontal, vertical, or
+                    diagonal) to win immediately.</li>
+                <li><strong>Draw:</strong> If all 9 cells are filled and neither player has three in a row, the game
+                    ends in a draw.</li>
+                <li><strong>Game over:</strong> Once a win or draw is detected, no more moves can be made.</li>
+            </ul>
+        </div>
+
+        <div class="rule-section">
+            <div class="rule-title">👥 Game Modes</div>
+
+            <div style="margin: 20px 0;">
+                <h3 style="color: var(--accent-color); margin-bottom: 10px;">Local Multiplayer</h3>
+                <div class="rule-description">
+                    Play with a friend on the same device. Two players take turns clicking cells on the grid. Perfect
+                    for casual gaming with someone nearby.
+                </div>
+            </div>
+
+            <div style="margin: 20px 0;">
+                <h3 style="color: var(--accent-color); margin-bottom: 10px;">Computer (3 Difficulty Levels)</h3>
+                <div class="difficulty-info">
+                    <strong>Easy:</strong> The computer makes random valid moves. Great for beginners learning the game.
+                </div>
+                <div class="difficulty-info">
+                    <strong>Medium:</strong> The computer plays strategically—it will take winning moves when available
+                    and block your winning moves. A balanced challenge.
+                </div>
+                <div class="difficulty-info">
+                    <strong>Hard:</strong> The computer uses the Minimax algorithm, making it mathematically unbeatable.
+                    It will never lose. Only possible outcomes are Computer Win or Draw.
+                </div>
+            </div>
+
+            <div style="margin: 20px 0;">
+                <h3 style="color: var(--accent-color); margin-bottom: 10px;">Online Multiplayer</h3>
+                <div class="rule-description">
+                    Play with friends remotely using room codes. One player hosts a game and receives a unique room
+                    code. The opponent opens the game in another browser tab/window, joins with the room code, and the
+                    game syncs in real-time. Built-in chat lets you communicate during the game.
+                </div>
+            </div>
+        </div>
+
+        <div class="rule-section">
+            <div class="rule-title">⚡ Winning Strategies</div>
+            <ul class="rule-list">
+                <li><strong>Control the center:</strong> The middle cell (5) is part of 4 winning lines. Controlling it
+                    gives you more winning opportunities.</li>
+                <li><strong>Watch for threats:</strong> If your opponent has two in a row, block the third cell
+                    immediately or they'll win.</li>
+                <li><strong>Create forks:</strong> Try to position yourself so you have two possible winning moves. Your
+                    opponent can only block one.</li>
+                <li><strong>Corners are powerful:</strong> Corner cells (1, 3, 7, 9) are part of 3 winning lines each.
+                    They're strategically valuable.</li>
+                <li><strong>Play optimally:</strong> With perfect play, Tic Tac Toe always ends in a draw. Focus on not
+                    making mistakes against skilled opponents.</li>
+            </ul>
+        </div>
+
+        <div class="rule-section">
+            <div class="rule-title">✨ Features & Settings</div>
+            <ul class="rule-list">
+                <li><strong>Themes:</strong> Switch between 4 beautiful themes (Classic, Neon Dark, Wooden, Pastel)
+                    anytime.</li>
+                <li><strong>Sound Effects:</strong> Toggle sound on/off with the 🔊 button. All sounds are
+                    synthesized—no files needed.</li>
+                <li><strong>Scoreboard:</strong> Track wins, losses, and draws for every player. Full game history with
+                    dates and modes.</li>
+                <li><strong>Responsive Design:</strong> Play on mobile, tablet, or desktop. The game adapts perfectly to
+                    any screen size.</li>
+                <li><strong>Keyboard Support:</strong> Use Tab to navigate cells and Enter to place your symbol.</li>
+            </ul>
+        </div>
+
+        <div class="rule-section" style="text-align: center; margin-top: 50px;">
+            <a href="game.html" class="btn btn-primary">Start Playing</a>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-title">TIC TAC TOE</div>
+            <div class="footer-text">The ultimate modern take on a classic game</div>
+            <div class="footer-links">
+                <a href="index.html">Home</a>
+                <a href="game.html">Play</a>
+                <a href="rules.html">Rules</a>
+                <a href="leaderboard.html">Stats</a>
+                <a href="settings.html">Settings</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            initializeApp();
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe - The Ultimate Game</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Space+Grotesk:wght@400;600;700&family=Orbitron:wght@400;700;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/storage.js"></script>
+    <script src="js/sound.js"></script>
+    <script src="js/game-logic.js"></script>
+    <script src="js/main.js"></script>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">TIC TAC TOE</a>
+            <ul class="nav-links">
+                <li><a href="index.html" class="active">Home</a></li>
+                <li><a href="game.html">Play</a></li>
+                <li><a href="rules.html">Rules</a></li>
+                <li><a href="leaderboard.html">Stats</a></li>
+                <li><a href="settings.html">Settings</a></li>
+            </ul>
+            <div class="nav-controls">
+                <button id="soundToggle" title="Toggle Sound">🔊</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div>
+            <h1 class="hero-title">TIC TAC TOE</h1>
+            <p class="hero-subtitle">Challenge your friends, beat the AI, or play online. The classic game reimagined
+                with modern style and advanced features.</p>
+
+            <!-- Theme Picker -->
+            <div style="margin: 25px 0; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                <button class="theme-btn active" data-theme="classic">🏛️ Classic</button>
+                <button class="theme-btn" data-theme="neon">🌌 Neon</button>
+                <button class="theme-btn" data-theme="wooden">🪵 Wooden</button>
+                <button class="theme-btn" data-theme="pastel">🌸 Pastel</button>
+            </div>
+
+            <div class="hero-buttons">
+                <a href="game.html" class="btn btn-primary">Play Now</a>
+                <a href="rules.html" class="btn btn-secondary">Learn Rules</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Game Modes Section -->
+        <section class="section">
+            <h2 class="section-title">Game Modes</h2>
+            <div class="cards-grid">
+                <div class="card">
+                    <div class="card-icon">👥</div>
+                    <div class="card-title">Local Multiplayer</div>
+                    <div class="card-description">Play with a friend on the same device. Customize player names and
+                        enjoy real-time competitive gameplay with beautiful animations.</div>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🤖</div>
+                    <div class="card-title">Play Computer</div>
+                    <div class="card-description">Face three difficulty levels: Easy (random moves), Medium (strategic
+                        blocking), or Hard (unbeatable Minimax algorithm).</div>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🌐</div>
+                    <div class="card-title">Online Multiplayer</div>
+                    <div class="card-description">Play with friends remotely using shareable room codes. Real-time sync
+                        across browser tabs with built-in chat messaging.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="section">
+            <h2 class="section-title">Premium Features</h2>
+            <div class="cards-grid">
+                <div class="card">
+                    <div class="card-icon">🎨</div>
+                    <div class="card-title">4 Unique Themes</div>
+                    <div class="card-description">Classic, Neon Dark, Wooden, and Pastel. Each theme has its own color
+                        palette and vibe. Switch anytime without leaving the game.</div>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🔊</div>
+                    <div class="card-title">Advanced Sound Design</div>
+                    <div class="card-description">Web Audio API synthesized sounds. Click effects, victory chimes, draw
+                        buzzes, and smooth transitions. Mute anytime with one click.</div>
+                </div>
+                <div class="card">
+                    <div class="card-icon">📊</div>
+                    <div class="card-title">Comprehensive Scoreboard</div>
+                    <div class="card-description">Track wins, losses, and draws for every player. Full game history with
+                        timestamps, modes, and results. Persistent storage via localStorage.</div>
+                </div>
+                <div class="card">
+                    <div class="card-icon">✨</div>
+                    <div class="card-title">Smooth Animations</div>
+                    <div class="card-description">Hand-crafted SVG symbols with stroke animations. Cell scaling on
+                        hover, winning cell flashes, screen fades, and board shake effects.</div>
+                </div>
+                <div class="card">
+                    <div class="card-icon">📱</div>
+                    <div class="card-title">Fully Responsive Design</div>
+                    <div class="card-description">Seamlessly adapts from mobile (375px) to desktop. Touch-friendly
+                        interface, optimized layouts, and perfect scaling on all devices.</div>
+                </div>
+                <div class="card">
+                    <div class="card-icon">♿</div>
+                    <div class="card-title">Accessibility Built-In</div>
+                    <div class="card-description">Full keyboard navigation with Tab and Enter. Clear focus indicators,
+                        semantic HTML, and screen reader compatible for all users.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technology Section -->
+        <section class="section">
+            <h2 class="section-title">Built With Modern Tech</h2>
+            <div class="cards-grid">
+                <div class="card">
+                    <div class="card-icon">🔧</div>
+                    <div class="card-title">Vanilla JavaScript</div>
+                    <div class="card-description">Zero dependencies. Pure ES6+ code with modular architecture. No
+                        frameworks, no bloat. Fast and lightweight.</div>
+                </div>
+                <div class="card">
+                    <div class="card-icon">💾</div>
+                    <div class="card-title">localStorage & Events</div>
+                    <div class="card-description">Persistent game data. Real-time sync across tabs using storage events.
+                        Your stats and preferences are always saved.</div>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🔊</div>
+                    <div class="card-title">Web Audio API</div>
+                    <div class="card-description">Synthesized sounds without audio files. Full control over frequency,
+                        duration, and volume. Pure programmable audio.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section class="section" style="text-align: center;">
+            <h2 class="section-title">Ready to Play?</h2>
+            <p style="font-size: 1.1em; opacity: 0.85; max-width: 600px; margin: 0 auto 30px; line-height: 1.6;">
+                Start a new game today. Challenge friends locally, test your skills against an unbeatable AI, or compete
+                online in real-time. Everything you need is built in — no downloads, no plugins, no external
+                dependencies.
+            </p>
+            <a href="game.html" class="btn btn-primary">Start Playing Now</a>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-title">TIC TAC TOE</div>
+            <div class="footer-text">The ultimate modern take on a classic game</div>
+            <div class="footer-links">
+                <a href="index.html">Home</a>
+                <a href="game.html">Play</a>
+                <a href="rules.html">Rules</a>
+                <a href="leaderboard.html">Stats</a>
+                <a href="settings.html">Settings</a>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Tic Tac Toe. Built with vanilla HTML, CSS, and JavaScript. No frameworks, no external
+                    dependencies, no bloat.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            initializeApp();
+        });
+    </script>
+</body>
+
+</html>
