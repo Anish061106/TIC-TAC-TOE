@@ -7,6 +7,7 @@ function copyJsPlugin() {
   return {
     name: 'copy-js-plugin',
     closeBundle() {
+      // Copy 'js' folder
       const srcDir = resolve(__dirname, 'js');
       const destDir = resolve(__dirname, 'dist/js');
       if (fs.existsSync(srcDir)) {
@@ -17,6 +18,13 @@ function copyJsPlugin() {
         for (const file of files) {
           fs.copyFileSync(resolve(srcDir, file), resolve(destDir, file));
         }
+      }
+      
+      // Copy 'favicon.png'
+      const srcFavicon = resolve(__dirname, 'favicon.png');
+      const destFavicon = resolve(__dirname, 'dist/favicon.png');
+      if (fs.existsSync(srcFavicon)) {
+        fs.copyFileSync(srcFavicon, destFavicon);
       }
     }
   };
