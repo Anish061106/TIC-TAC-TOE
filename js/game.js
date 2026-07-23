@@ -210,7 +210,7 @@ function endGame(result, winningCells = null) {
         updateScoreboardOnGameEnd(result === 'X' ? 'player1' : 'player2');
     }
 
-    const timestamp = new Date().toLocaleString();
+    const timestamp = new Date().toISOString();
     const gameRecord = {
         date: timestamp,
         mode: GameState.gameMode === 'pvp' ? 'Local' : GameState.gameMode === 'pvc' ? `Computer (${GameState.computerDifficulty})` : 'Online',
@@ -220,6 +220,9 @@ function endGame(result, winningCells = null) {
     };
     GameState.gameHistory.push(gameRecord);
     saveState('tictactoe_history', GameState.gameHistory);
+
+    const winner = result === 'draw' ? 'draw' : (result === 'X' ? 'player1' : 'player2');
+    saveGameResultToBackend(gameRecord, winner);
 
     renderResultBoard();
     showScreen('resultScreen');

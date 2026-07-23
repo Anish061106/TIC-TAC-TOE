@@ -10,6 +10,7 @@
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Space+Grotesk:wght@400;600;700&family=Orbitron:wght@400;700;900&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    <script src="js/config.js"></script>
     <script src="js/storage.js"></script>
     <script src="js/sound.js"></script>
     <script src="js/main.js"></script>
@@ -208,10 +209,10 @@
     </footer>
 
     <script>
-        function updateLeaderboard() {
-            const savedData = loadAllSavedData();
-            const scoreboard = savedData.scoreboard;
-            const history = savedData.history;
+        async function updateLeaderboard() {
+            const savedData = await fetchStatsFromBackend();
+            const scoreboard = savedData.scoreboard || {};
+            const history = savedData.history || [];
 
             // Calculate overall stats
             let totalGames = 0;
@@ -299,18 +300,17 @@
         }
 
         // Clear all data
-        document.getElementById('clearAllBtn').addEventListener('click', () => {
+        document.getElementById('clearAllBtn').addEventListener('click', async () => {
             if (confirm('Are you sure you want to clear all game data? This cannot be undone.')) {
-                localStorage.removeItem('tictactoe_scoreboard');
-                localStorage.removeItem('tictactoe_history');
-                updateLeaderboard();
+                await clearBackendStats();
+                await updateLeaderboard();
             }
         });
 
         // Initial load
-        window.addEventListener('DOMContentLoaded', () => {
+        window.addEventListener('DOMContentLoaded', async () => {
             initializeApp();
-            updateLeaderboard();
+            await updateLeaderboard();
         });
     </script>
 </body>
