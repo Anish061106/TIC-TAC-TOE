@@ -125,6 +125,7 @@ function initializeGame() {
     GameState.board = ['', '', '', '', '', '', '', '', ''];
     GameState.currentPlayer = 'X';
     GameState.gameActive = true;
+    GameState.gameEnded = false;
     renderBoard();
     updateCurrentPlayerDisplay();
     showScreen('gameScreen');
@@ -141,7 +142,7 @@ function initializeGame() {
 }
 
 function handleCellClick(index) {
-    if (!GameState.gameActive || GameState.board[index] !== '') return;
+    if (!GameState.gameActive || GameState.gameEnded || GameState.board[index] !== '') return;
 
     if (GameState.gameMode === 'pvc' && GameState.currentPlayer === 'O') return;
 
@@ -158,11 +159,15 @@ function handleCellClick(index) {
 }
 
 function makeMove(index) {
-    if (!GameState.gameActive || GameState.board[index] !== '') return;
+    if (!GameState.gameActive || GameState.gameEnded || GameState.board[index] !== '') return;
 
     GameState.board[index] = GameState.currentPlayer;
     SoundEngine.playClick();
     renderBoard();
+
+    if (GameState.gameMode === 'online') {
+        broadcastGameState();
+    }
 
     const result = checkWinner(GameState.board);
     if (result) {
@@ -193,7 +198,18 @@ function makeComputerMove() {
 }
 
 function endGame(result, winningCells = null) {
+    if (GameState.gameEnded) return;
+    GameState.gameEnded = true;
     GameState.gameActive = false;
+
+    renderBoard();
+    if (winningCells) {
+        highlightWinningCells(winningCells);
+    }
+
+    if (GameState.gameMode === 'online') {
+        broadcastGameState();
+    }
 
     if (result === 'draw') {
         SoundEngine.playDraw();
@@ -203,9 +219,23 @@ function endGame(result, winningCells = null) {
         updateScoreboardOnGameEnd('draw');
     } else {
         SoundEngine.playWin();
-        highlightWinningCells(winningCells);
         const winnerName = result === 'X' ? GameState.player1Name : GameState.player2Name;
-        document.getElementById('resultTitle').textContent = 'You Win!';
+
+        let titleText = `${winnerName} Wins!`;
+        if (GameState.gameMode === 'pvc') {
+            if (winnerName === 'Computer' || (result === 'O' && GameState.player2Name === 'Computer')) {
+                titleText = 'Computer Wins!';
+            } else {
+                titleText = 'You Win!';
+            }
+        } else if (GameState.gameMode === 'online') {
+            const localSymbol = GameState.isOnlineHost ? 'X' : 'O';
+            titleText = (result === localSymbol) ? 'You Win!' : `${winnerName} Wins!`;
+        } else {
+            titleText = `${winnerName} Wins!`;
+        }
+
+        document.getElementById('resultTitle').textContent = titleText;
         document.getElementById('resultMessage').textContent = `${winnerName} wins!`;
         updateScoreboardOnGameEnd(result === 'X' ? 'player1' : 'player2');
     }
@@ -222,10 +252,18 @@ function endGame(result, winningCells = null) {
     saveState('tictactoe_history', GameState.gameHistory);
 
     const winner = result === 'draw' ? 'draw' : (result === 'X' ? 'player1' : 'player2');
-    saveGameResultToBackend(gameRecord, winner);
+
+    // Prevent duplicate backend submissions in online mode
+    if (GameState.gameMode !== 'online' || GameState.isOnlineHost) {
+        saveGameResultToBackend(gameRecord, winner);
+    }
 
     renderResultBoard();
-    showScreen('resultScreen');
+    
+    // Slight delay before showing result screen so players see the final board state clearly
+    setTimeout(() => {
+        showScreen('resultScreen');
+    }, 600);
 }
 
 function updateScoreboardOnGameEnd(result) {

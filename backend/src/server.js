@@ -92,6 +92,25 @@ app.post('/api/game-result', (req, res) => {
     const data = loadData();
     const p1 = player1.trim() || 'Player 1';
     const p2 = player2.trim() || 'Player 2';
+    const requestTime = req.body.date ? new Date(req.body.date).getTime() : Date.now();
+
+    // Deduplication check: ignore if exact same match posted within 5 seconds
+    const isDuplicate = data.history.some(rec => {
+        const recTime = new Date(rec.date).getTime();
+        return rec.player1 === p1 &&
+            rec.player2 === p2 &&
+            rec.mode === (mode || 'Local') &&
+            Math.abs(requestTime - recTime) < 5000;
+    });
+
+    if (isDuplicate) {
+        return res.json({
+            success: true,
+            message: 'Duplicate game result ignored',
+            scoreboard: data.scoreboard,
+            historyCount: data.history.length
+        });
+    }
 
     if (!data.scoreboard[p1]) {
         data.scoreboard[p1] = { wins: 0, losses: 0, draws: 0 };

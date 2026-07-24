@@ -215,18 +215,35 @@
             const history = savedData.history || [];
 
             // Calculate overall stats
-            let totalGames = 0;
+            let totalGames = history.length;
             let totalWins = 0;
             let totalDraws = 0;
 
-            Object.values(scoreboard).forEach(stats => {
-                totalGames += (stats.wins || 0) + (stats.losses || 0) + (stats.draws || 0);
-                totalWins += stats.wins || 0;
-                totalDraws += stats.draws || 0;
-            });
+            if (history.length > 0) {
+                history.forEach(game => {
+                    const res = (game.result || '').toLowerCase();
+                    if (res.includes('draw')) {
+                        totalDraws++;
+                    } else {
+                        totalWins++;
+                    }
+                });
+            } else {
+                let sumWins = 0;
+                let sumLosses = 0;
+                let sumDraws = 0;
+                Object.values(scoreboard).forEach(stats => {
+                    sumWins += stats.wins || 0;
+                    sumLosses += stats.losses || 0;
+                    sumDraws += stats.draws || 0;
+                });
+                totalDraws = Math.floor(sumDraws / 2);
+                totalWins = Math.floor((sumWins + sumLosses) / 2);
+                totalGames = totalWins + totalDraws;
+            }
 
             // Update overall stats
-            document.getElementById('totalGames').textContent = Math.floor(totalGames / 2); // Divide by 2 since each game counts for 2 players
+            document.getElementById('totalGames').textContent = totalGames;
             document.getElementById('totalWins').textContent = totalWins;
             document.getElementById('totalDraws').textContent = totalDraws;
 
