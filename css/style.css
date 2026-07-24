@@ -283,11 +283,17 @@ nav {
     display: none;
     opacity: 0;
     animation: fadeIn 0.5s ease;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
 }
 
 .screen.active {
     display: flex;
     opacity: 1;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
 }
 
 @keyframes fadeIn {
@@ -303,16 +309,18 @@ nav {
 }
 
 .main-container {
-    max-width: 600px;
-    width: 100%;
+    max-width: 580px;
+    width: 90%;
     background: var(--secondary-color);
-    border-radius: 20px;
-    padding: 40px;
+    border-radius: 24px;
+    padding: 40px 30px;
     box-shadow: var(--shadow);
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 20px;
-    margin: 50px auto;
+    margin: 40px auto;
+    text-align: center;
 }
 
 .header {
@@ -495,28 +503,82 @@ nav {
 }
 
 /* ========================================
-   THEME PICKER
+   THEME PICKER & HOME LAYOUT
    ======================================== */
 .theme-picker {
     display: flex;
     gap: 10px;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
     flex-wrap: wrap;
     justify-content: center;
+    align-items: center;
+    width: 100%;
 }
 
 .theme-btn {
-    padding: 8px 16px;
+    padding: 10px 18px;
     font-size: 0.9em;
     background: var(--cell-bg);
     border: 2px solid var(--cell-border);
+    border-radius: 12px;
     transition: all 0.2s ease;
+    cursor: pointer;
+    font-weight: 600;
 }
 
 .theme-btn.active {
     background: var(--accent-color);
     color: var(--primary-color);
     border-color: var(--accent-color);
+}
+
+.home-content {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.mode-buttons {
+    display: flex;
+    gap: 15px;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.mode-buttons .mode-btn {
+    flex: 1 1 calc(33.333% - 15px);
+    min-width: 120px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 18px;
+    text-align: center;
+    font-size: 0.95em;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin-top: 15px;
+    flex-wrap: wrap;
+}
+
+.action-buttons .mode-btn,
+.action-buttons .game-btn,
+.action-buttons .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 28px;
+    min-width: 180px;
+    text-align: center;
 }
 
 /* ========================================
