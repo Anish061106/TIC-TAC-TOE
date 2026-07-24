@@ -12,12 +12,15 @@ function generateRoomCode() {
     return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
-// Highlights the current navigation link active state
 function setupNavigation() {
-    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    let currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    if (!currentPage.endsWith('.html')) {
+        currentPage = currentPage ? `${currentPage}.html` : 'index.html';
+    }
+
     document.querySelectorAll('.nav-links a').forEach(link => {
         const href = link.getAttribute('href');
-        if (href === currentPage || (href === 'index.html' && currentPage === '')) {
+        if (href === currentPage || (href === 'index.html' && (currentPage === '' || currentPage === 'index.html'))) {
             link.classList.add('active');
         } else {
             link.classList.remove('active');
