@@ -9,15 +9,19 @@ const getBackendUrl = () => {
             return import.meta.env.VITE_BACKEND_URL;
         }
     } catch (e) {}
-    
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        return 'http://localhost:5000';
+
+    const host = window.location.hostname;
+    // Match localhost, 127.0.0.1, or local IP addresses (e.g. 192.168.x.x)
+    if (host === 'localhost' || host === '127.0.0.1' || /^(\d{1,3}\.){3}\d{1,3}$/.test(host)) {
+        const port = window.location.port === '5000' ? '5000' : '5000';
+        return `http://${host}:${port}`;
     }
-    
-    return ''; // Set your Render URL here if not using Vercel Env variables (e.g. 'https://your-backend.onrender.com')
+
+    return ''; // Render / Vercel URL
 };
 
 const CONFIG = {
     BACKEND_URL: getBackendUrl()
 };
+
 

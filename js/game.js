@@ -376,6 +376,111 @@ function setupOnline() {
     showScreen('modeSelectScreen');
 }
 
+let peerInstance = null;
+let peerConnection = null;
+
+function initPeerHost(roomCode) {
+    if (typeof Peer === 'undefined') return;
+    try {
+        if (peerInstance) peerInstance.destroy();
+        peerInstance = new Peer(`nexus-tictactoe-${roomCode}`);
+        peerInstance.on('connection', (conn) => {
+            peerConnection = conn;
+            setupPeerDataHandler(conn);
+            GameState.onlineOpponentConnected = true;
+            conn.on('open', () => {
+                conn.send({
+                    type: 'ROOM_INFO',
+                    player1Name: GameState.player1Name,
+                    board: GameState.board,
+                    currentPlayer: GameState.currentPlayer
+                });
+            });
+        });
+    } catch (e) {
+        console.warn('PeerJS host init failed:', e);
+    }
+}
+
+function initPeerGuest(roomCode, guestName) {
+    return new Promise((resolve) => {
+        if (typeof Peer === 'undefined') {
+            resolve(false);
+            return;
+        }
+        try {
+            if (peerInstance) peerInstance.destroy();
+            peerInstance = new Peer();
+            peerInstance.on('open', () => {
+                const conn = peerInstance.connect(`nexus-tictactoe-${roomCode}`);
+                peerConnection = conn;
+
+                const timeout = setTimeout(() => resolve(false), 3000);
+
+                conn.on('open', () => {
+                    clearTimeout(timeout);
+                    setupPeerDataHandler(conn);
+                    conn.send({ type: 'JOIN_ROOM', player2Name: guestName });
+                    resolve(true);
+                });
+
+                conn.on('error', () => {
+                    clearTimeout(timeout);
+                    resolve(false);
+                });
+            });
+
+            peerInstance.on('error', () => {
+                resolve(false);
+            });
+        } catch (e) {
+            console.warn('PeerJS guest init failed:', e);
+            resolve(false);
+        }
+    });
+}
+
+function setupPeerDataHandler(conn) {
+    conn.on('data', (data) => {
+        if (!data || !data.type) return;
+
+        if (data.type === 'JOIN_ROOM') {
+            GameState.player2Name = data.player2Name || 'Player 2';
+            GameState.onlineOpponentConnected = true;
+            initializeGame();
+        } else if (data.type === 'ROOM_INFO') {
+            GameState.player1Name = data.player1Name || 'Player 1';
+            GameState.board = data.board || GameState.board;
+            GameState.currentPlayer = data.currentPlayer || 'X';
+        } else if (data.type === 'MOVE') {
+            if (data.board) GameState.board = data.board;
+            if (data.currentPlayer) GameState.currentPlayer = data.currentPlayer;
+            renderBoard();
+            updateCurrentPlayerDisplay();
+            const result = checkWinner(GameState.board);
+            if (result) endGame(result.winner, result.winningCells);
+            else if (checkDraw(GameState.board)) endGame('draw');
+        } else if (data.type === 'CHAT') {
+            const chatMessages = document.getElementById('chatMessages');
+            if (chatMessages && data.text) {
+                const msgDiv = document.createElement('div');
+                msgDiv.className = 'chat-message';
+                msgDiv.textContent = `${data.sender || 'Player'}: ${data.text}`;
+                chatMessages.appendChild(msgDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        }
+    });
+}
+
+function sendPeerData(data) {
+    if (peerConnection && peerConnection.open) {
+        try {
+            peerConnection.send(data);
+        } catch (e) {}
+    }
+}
+
 function setupOnlineHost() {
     GameState.gameMode = 'online';
     GameState.roomCode = generateRoomCode();
@@ -392,6 +497,7 @@ function setupOnlineHost() {
     };
     saveState(`room_${GameState.roomCode}`, initialRoomData);
     createOnlineRoomApi(GameState.roomCode, GameState.player1Name);
+    initPeerHost(GameState.roomCode);
 
     const content = document.getElementById('modeSelectContent');
     content.innerHTML = `
@@ -459,23 +565,28 @@ function setupOnlineJoin() {
             return;
         }
 
+        const guestName = document.getElementById('player1Input').value.trim() || 'Player 2';
+        const connectedViaPeer = await initPeerGuest(roomCode, guestName);
+
         // Try backend API first, then fall back to localStorage
         let roomData = await fetchOnlineRoomApi(roomCode);
         if (!roomData) {
             roomData = loadState(`room_${roomCode}`);
         }
 
-        if (!roomData) {
+        if (!roomData && !connectedViaPeer) {
             alert('Room not found. Please check the code.');
             return;
         }
 
         GameState.roomCode = roomCode;
-        GameState.player1Name = roomData.player1Name || 'Player 1';
-        GameState.player2Name = document.getElementById('player1Input').value.trim() || 'Player 2';
+        if (roomData) {
+            GameState.player1Name = roomData.player1Name || 'Player 1';
+            roomData.player2Name = guestName;
+            saveState(`room_${roomCode}`, roomData);
+        }
+        GameState.player2Name = guestName;
 
-        roomData.player2Name = GameState.player2Name;
-        saveState(`room_${roomCode}`, roomData);
         await joinOnlineRoomApi(roomCode, GameState.player2Name);
 
         initializeGame();
@@ -483,6 +594,7 @@ function setupOnlineJoin() {
 
     showScreen('modeSelectScreen');
 }
+
 
 function showWaitingScreen() {
     document.getElementById('roomCodeDisplay').textContent = GameState.roomCode;
@@ -531,6 +643,7 @@ function broadcastGameState() {
     roomData.player2Name = GameState.player2Name;
     saveState(`room_${GameState.roomCode}`, roomData);
     syncOnlineRoomMoveApi(GameState.roomCode, roomData);
+    sendPeerData({ type: 'MOVE', board: GameState.board, currentPlayer: GameState.currentPlayer });
 }
 
 // Synced storage listener for multiplayer in same browser
@@ -573,9 +686,11 @@ async function sendChatMessage() {
     messages.push({ sender: myName, text: message, timestamp: Date.now() });
     saveState(`chat_${GameState.roomCode}`, messages);
     await sendChatMessageApi(GameState.roomCode, myName, message);
+    sendPeerData({ type: 'CHAT', sender: myName, text: message });
 
     input.value = '';
 }
+
 
 // Active game polling for online state and chat messages
 setInterval(async () => {
