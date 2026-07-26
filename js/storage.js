@@ -98,8 +98,90 @@ async function clearBackendStats() {
     localStorage.removeItem('tictactoe_history');
 }
 
-// Online Multiplayer Room API Sync Helpers
+// Online Multiplayer Cloud Relay & Backend API Helpers
+async function publishCloudRelay(roomCode, payload) {
+    try {
+        await fetch(`https://ntfy.sh/tictactoe_nexus_${encodeURIComponent(roomCode)}`, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
+    } catch (e) {
+        console.warn('Cloud relay publish failed:', e);
+    }
+}
+
+async function fetchCloudRelayRoom(roomCode) {
+    try {
+        const url = `https://ntfy.sh/tictactoe_nexus_${encodeURIComponent(roomCode)}/json?poll=1`;
+        const res = await fetch(url);
+        if (!res.ok) return null;
+        const text = await res.text();
+        if (!text || !text.trim()) return null;
+
+        const lines = text.trim().split('\n');
+        let roomState = null;
+        const chatMsgs = [];
+
+        for (const line of lines) {
+            try {
+                const item = JSON.parse(line);
+                if (item.event === 'message' && item.message) {
+                    const msg = JSON.parse(item.message);
+                    if (msg.type === 'ROOM_CREATE') {
+                        roomState = {
+                            roomCode: msg.roomCode || roomCode,
+                            player1Name: msg.player1Name || 'Player 1',
+                            player2Name: msg.player2Name || null,
+                            board: msg.board || ['', '', '', '', '', '', '', '', ''],
+                            currentPlayer: msg.currentPlayer || 'X',
+                            messages: []
+                        };
+                    } else if (msg.type === 'ROOM_JOIN') {
+                        if (!roomState) {
+                            roomState = {
+                                roomCode: roomCode,
+                                player1Name: 'Player 1',
+                                player2Name: msg.player2Name || 'Player 2',
+                                board: ['', '', '', '', '', '', '', '', ''],
+                                currentPlayer: 'X',
+                                messages: []
+                            };
+                        } else {
+                            roomState.player2Name = msg.player2Name || 'Player 2';
+                        }
+                    } else if (msg.type === 'ROOM_MOVE' && roomState) {
+                        if (msg.board) roomState.board = msg.board;
+                        if (msg.currentPlayer) roomState.currentPlayer = msg.currentPlayer;
+                        if (msg.player1Name) roomState.player1Name = msg.player1Name;
+                        if (msg.player2Name) roomState.player2Name = msg.player2Name;
+                    } else if (msg.type === 'CHAT_MSG') {
+                        chatMsgs.push({ sender: msg.sender || 'Player', text: msg.text, timestamp: (item.time || Date.now() / 1000) * 1000 });
+                    }
+                }
+            } catch (e) {}
+        }
+
+        if (roomState) {
+            roomState.messages = chatMsgs;
+            return roomState;
+        }
+    } catch (err) {
+        console.warn('Cloud relay fetch error:', err);
+    }
+    return null;
+}
+
 async function createOnlineRoomApi(roomCode, player1Name) {
+    const payload = {
+        type: 'ROOM_CREATE',
+        roomCode,
+        player1Name,
+        player2Name: null,
+        board: ['', '', '', '', '', '', '', '', ''],
+        currentPlayer: 'X'
+    };
+    publishCloudRelay(roomCode, payload);
+
     const backendUrl = typeof CONFIG !== 'undefined' ? CONFIG.BACKEND_URL : '';
     if (backendUrl) {
         try {
@@ -113,13 +195,14 @@ async function createOnlineRoomApi(roomCode, player1Name) {
                 if (data && data.room) return data.room;
             }
         } catch (err) {
-            console.warn('Backend room creation failed, falling back to localStorage:', err);
+            console.warn('Backend room creation failed:', err);
         }
     }
     return null;
 }
 
 async function fetchOnlineRoomApi(roomCode) {
+    // 1. Try Backend API if configured
     const backendUrl = typeof CONFIG !== 'undefined' ? CONFIG.BACKEND_URL : '';
     if (backendUrl) {
         try {
@@ -129,13 +212,20 @@ async function fetchOnlineRoomApi(roomCode) {
                 if (data && data.room) return data.room;
             }
         } catch (err) {
-            console.warn('Backend room fetch failed, falling back to localStorage:', err);
+            console.warn('Backend room fetch failed:', err);
         }
     }
+
+    // 2. Try Cloud Relay (ntfy.sh) - works globally across all devices/networks
+    const cloudRoom = await fetchCloudRelayRoom(roomCode);
+    if (cloudRoom) return cloudRoom;
+
     return null;
 }
 
 async function joinOnlineRoomApi(roomCode, player2Name) {
+    publishCloudRelay(roomCode, { type: 'ROOM_JOIN', player2Name });
+
     const backendUrl = typeof CONFIG !== 'undefined' ? CONFIG.BACKEND_URL : '';
     if (backendUrl) {
         try {
@@ -149,13 +239,21 @@ async function joinOnlineRoomApi(roomCode, player2Name) {
                 if (data && data.room) return data.room;
             }
         } catch (err) {
-            console.warn('Backend room join failed, falling back to localStorage:', err);
+            console.warn('Backend room join failed:', err);
         }
     }
     return null;
 }
 
 async function syncOnlineRoomMoveApi(roomCode, roomData) {
+    publishCloudRelay(roomCode, {
+        type: 'ROOM_MOVE',
+        board: roomData.board,
+        currentPlayer: roomData.currentPlayer,
+        player1Name: roomData.player1Name,
+        player2Name: roomData.player2Name
+    });
+
     const backendUrl = typeof CONFIG !== 'undefined' ? CONFIG.BACKEND_URL : '';
     if (backendUrl) {
         try {
@@ -171,6 +269,8 @@ async function syncOnlineRoomMoveApi(roomCode, roomData) {
 }
 
 async function sendChatMessageApi(roomCode, sender, text) {
+    publishCloudRelay(roomCode, { type: 'CHAT_MSG', sender, text });
+
     const backendUrl = typeof CONFIG !== 'undefined' ? CONFIG.BACKEND_URL : '';
     if (backendUrl) {
         try {
@@ -189,5 +289,6 @@ async function sendChatMessageApi(roomCode, sender, text) {
     }
     return null;
 }
+
 
 
