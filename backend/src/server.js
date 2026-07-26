@@ -75,6 +75,106 @@ app.get(['/', '/api/health'], (req, res) => {
     });
 });
 
+// In-memory room storage for online multiplayer
+const onlineRooms = new Map();
+
+// Periodic cleanup of inactive rooms (> 1 hour old)
+setInterval(() => {
+    const now = Date.now();
+    for (const [code, room] of onlineRooms.entries()) {
+        if (now - room.updatedAt > 3600000) {
+            onlineRooms.delete(code);
+        }
+    }
+}, 600000);
+
+// POST /api/rooms - Create or register a new room
+app.post('/api/rooms', (req, res) => {
+    const { roomCode, player1Name } = req.body;
+    if (!roomCode) {
+        return res.status(400).json({ error: 'Room code is required' });
+    }
+    const code = roomCode.trim().toUpperCase();
+    const existing = onlineRooms.get(code);
+
+    const roomData = {
+        roomCode: code,
+        player1Name: (player1Name && player1Name.trim()) || 'Player 1',
+        player2Name: existing ? existing.player2Name : null,
+        board: existing ? existing.board : ['', '', '', '', '', '', '', '', ''],
+        currentPlayer: existing ? existing.currentPlayer : 'X',
+        messages: existing ? existing.messages : [],
+        createdAt: existing ? existing.createdAt : Date.now(),
+        updatedAt: Date.now()
+    };
+
+    onlineRooms.set(code, roomData);
+    res.json({ success: true, room: roomData });
+});
+
+// GET /api/rooms/:code - Retrieve room details
+app.get('/api/rooms/:code', (req, res) => {
+    const code = req.params.code.trim().toUpperCase();
+    const room = onlineRooms.get(code);
+    if (!room) {
+        return res.status(404).json({ error: 'Room not found' });
+    }
+    res.json({ success: true, room });
+});
+
+// POST /api/rooms/:code/join - Join an existing room
+app.post('/api/rooms/:code/join', (req, res) => {
+    const code = req.params.code.trim().toUpperCase();
+    const { player2Name } = req.body;
+    const room = onlineRooms.get(code);
+    if (!room) {
+        return res.status(404).json({ error: 'Room not found' });
+    }
+    room.player2Name = (player2Name && player2Name.trim()) || 'Player 2';
+    room.updatedAt = Date.now();
+    onlineRooms.set(code, room);
+    res.json({ success: true, room });
+});
+
+// POST /api/rooms/:code/move - Update game move & state
+app.post('/api/rooms/:code/move', (req, res) => {
+    const code = req.params.code.trim().toUpperCase();
+    const { board, currentPlayer, player1Name, player2Name } = req.body;
+    const room = onlineRooms.get(code);
+    if (!room) {
+        return res.status(404).json({ error: 'Room not found' });
+    }
+    if (board) room.board = board;
+    if (currentPlayer) room.currentPlayer = currentPlayer;
+    if (player1Name) room.player1Name = player1Name;
+    if (player2Name) room.player2Name = player2Name;
+    room.updatedAt = Date.now();
+    onlineRooms.set(code, room);
+    res.json({ success: true, room });
+});
+
+// POST /api/rooms/:code/chat - Post a chat message
+app.post('/api/rooms/:code/chat', (req, res) => {
+    const code = req.params.code.trim().toUpperCase();
+    const { sender, text } = req.body;
+    const room = onlineRooms.get(code);
+    if (!room) {
+        return res.status(404).json({ error: 'Room not found' });
+    }
+    if (!room.messages) room.messages = [];
+    if (text && text.trim()) {
+        room.messages.push({
+            sender: sender || 'Player',
+            text: text.trim(),
+            timestamp: Date.now()
+        });
+    }
+    room.updatedAt = Date.now();
+    onlineRooms.set(code, room);
+    res.json({ success: true, messages: room.messages });
+});
+
+
 // GET /api/stats - Retrieve all statistics & history
 app.get('/api/stats', (req, res) => {
     const data = loadData();

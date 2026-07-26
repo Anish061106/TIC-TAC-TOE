@@ -380,6 +380,18 @@ function setupOnlineHost() {
     GameState.gameMode = 'online';
     GameState.roomCode = generateRoomCode();
     GameState.isOnlineHost = true;
+    GameState.player1Name = 'Player 1';
+
+    // Immediately create and save initial room state so joiners find it right away
+    const initialRoomData = {
+        roomCode: GameState.roomCode,
+        player1Name: GameState.player1Name,
+        player2Name: null,
+        board: ['', '', '', '', '', '', '', '', ''],
+        currentPlayer: 'X',
+    };
+    saveState(`room_${GameState.roomCode}`, initialRoomData);
+    createOnlineRoomApi(GameState.roomCode, GameState.player1Name);
 
     const content = document.getElementById('modeSelectContent');
     content.innerHTML = `
@@ -401,17 +413,19 @@ function setupOnlineHost() {
         alert('Room code copied to clipboard!');
     };
 
-    document.getElementById('startGameBtn').onclick = () => {
-        GameState.player1Name = document.getElementById('player1Input').value || 'Player 1';
+    document.getElementById('startGameBtn').onclick = async () => {
+        GameState.player1Name = document.getElementById('player1Input').value.trim() || 'Player 1';
         GameState.onlineOpponentConnected = false;
 
         const roomData = {
+            roomCode: GameState.roomCode,
             player1Name: GameState.player1Name,
             player2Name: null,
             board: GameState.board,
             currentPlayer: 'X',
         };
         saveState(`room_${GameState.roomCode}`, roomData);
+        await createOnlineRoomApi(GameState.roomCode, GameState.player1Name);
 
         showWaitingScreen();
         listenForOnlineOpponent();
@@ -438,25 +452,31 @@ function setupOnlineJoin() {
         </div>
     `;
 
-    document.getElementById('startGameBtn').onclick = () => {
+    document.getElementById('startGameBtn').onclick = async () => {
         const roomCode = document.getElementById('roomCodeInput').value.trim().toUpperCase();
         if (!roomCode) {
             alert('Please enter a room code');
             return;
         }
 
-        const roomData = loadState(`room_${roomCode}`);
+        // Try backend API first, then fall back to localStorage
+        let roomData = await fetchOnlineRoomApi(roomCode);
+        if (!roomData) {
+            roomData = loadState(`room_${roomCode}`);
+        }
+
         if (!roomData) {
             alert('Room not found. Please check the code.');
             return;
         }
 
         GameState.roomCode = roomCode;
-        GameState.player1Name = roomData.player1Name;
-        GameState.player2Name = document.getElementById('player1Input').value || 'Player 2';
+        GameState.player1Name = roomData.player1Name || 'Player 1';
+        GameState.player2Name = document.getElementById('player1Input').value.trim() || 'Player 2';
 
         roomData.player2Name = GameState.player2Name;
         saveState(`room_${roomCode}`, roomData);
+        await joinOnlineRoomApi(roomCode, GameState.player2Name);
 
         initializeGame();
     };
@@ -476,15 +496,19 @@ function showWaitingScreen() {
 }
 
 function listenForOnlineOpponent() {
-    const checkInterval = setInterval(() => {
-        const roomData = loadState(`room_${GameState.roomCode}`);
+    const checkInterval = setInterval(async () => {
+        let roomData = await fetchOnlineRoomApi(GameState.roomCode);
+        if (!roomData) {
+            roomData = loadState(`room_${GameState.roomCode}`);
+        }
+
         if (roomData && roomData.player2Name && !GameState.onlineOpponentConnected) {
             GameState.onlineOpponentConnected = true;
             GameState.player2Name = roomData.player2Name;
             clearInterval(checkInterval);
             initializeGame();
         }
-    }, 500);
+    }, 800);
 
     setTimeout(() => clearInterval(checkInterval), 300000);
 }
@@ -496,6 +520,7 @@ function updateOnlineUI() {
     roomData.board = GameState.board;
     roomData.currentPlayer = GameState.currentPlayer;
     saveState(`room_${GameState.roomCode}`, roomData);
+    syncOnlineRoomMoveApi(GameState.roomCode, roomData);
 }
 
 function broadcastGameState() {
@@ -505,32 +530,37 @@ function broadcastGameState() {
     roomData.player1Name = GameState.player1Name;
     roomData.player2Name = GameState.player2Name;
     saveState(`room_${GameState.roomCode}`, roomData);
+    syncOnlineRoomMoveApi(GameState.roomCode, roomData);
 }
 
-// Synced storage listener for multiplayer
+// Synced storage listener for multiplayer in same browser
 window.addEventListener('storage', (e) => {
     if (e.key && e.key.startsWith('room_')) {
-        const roomData = JSON.parse(e.newValue);
-        if (roomData && roomData.board) {
-            GameState.board = roomData.board;
-            GameState.currentPlayer = roomData.currentPlayer;
-            renderBoard();
-            updateCurrentPlayerDisplay();
+        try {
+            const roomData = JSON.parse(e.newValue);
+            if (roomData && roomData.board) {
+                GameState.board = roomData.board;
+                GameState.currentPlayer = roomData.currentPlayer;
+                renderBoard();
+                updateCurrentPlayerDisplay();
 
-            const result = checkWinner(GameState.board);
-            if (result) {
-                endGame(result.winner, result.winningCells);
-            } else if (checkDraw(GameState.board)) {
-                endGame('draw');
+                const result = checkWinner(GameState.board);
+                if (result) {
+                    endGame(result.winner, result.winningCells);
+                } else if (checkDraw(GameState.board)) {
+                    endGame('draw');
+                }
             }
-        }
+        } catch (err) {}
     }
 });
 
-function sendChatMessage() {
+async function sendChatMessage() {
     const input = document.getElementById('chatInput');
     const message = input.value.trim();
     if (!message) return;
+
+    const myName = GameState.isOnlineHost ? GameState.player1Name : GameState.player2Name;
 
     const chatMessages = document.getElementById('chatMessages');
     const msgDiv = document.createElement('div');
@@ -540,29 +570,60 @@ function sendChatMessage() {
     chatMessages.scrollTop = chatMessages.scrollHeight;
 
     const messages = loadState(`chat_${GameState.roomCode}`) || [];
-    messages.push({ sender: GameState.player1Name, text: message, timestamp: Date.now() });
+    messages.push({ sender: myName, text: message, timestamp: Date.now() });
     saveState(`chat_${GameState.roomCode}`, messages);
+    await sendChatMessageApi(GameState.roomCode, myName, message);
 
     input.value = '';
 }
 
-// Check for new chat messages
-setInterval(() => {
-    if (GameState.gameMode === 'online') {
-        const messages = loadState(`chat_${GameState.roomCode}`) || [];
-        const chatMessages = document.getElementById('chatMessages');
-        if (messages.length > chatMessages.children.length) {
-            const newMsg = messages[messages.length - 1];
-            if (newMsg.sender !== GameState.player1Name) {
-                const msgDiv = document.createElement('div');
-                msgDiv.className = 'chat-message';
-                msgDiv.textContent = `${newMsg.sender}: ${newMsg.text}`;
-                chatMessages.appendChild(msgDiv);
-                chatMessages.scrollTop = chatMessages.scrollHeight;
+// Active game polling for online state and chat messages
+setInterval(async () => {
+    if (GameState.gameMode === 'online' && GameState.roomCode) {
+        let roomData = await fetchOnlineRoomApi(GameState.roomCode);
+        if (!roomData) {
+            roomData = loadState(`room_${GameState.roomCode}`);
+        }
+
+        if (roomData) {
+            if (roomData.player1Name) GameState.player1Name = roomData.player1Name;
+            if (roomData.player2Name) GameState.player2Name = roomData.player2Name;
+
+            // Update board if remote move was made
+            if (roomData.board && JSON.stringify(roomData.board) !== JSON.stringify(GameState.board)) {
+                GameState.board = roomData.board;
+                GameState.currentPlayer = roomData.currentPlayer;
+                renderBoard();
+                updateCurrentPlayerDisplay();
+
+                const result = checkWinner(GameState.board);
+                if (result) {
+                    endGame(result.winner, result.winningCells);
+                } else if (checkDraw(GameState.board)) {
+                    endGame('draw');
+                }
+            }
+
+            // Sync chat messages
+            const remoteMessages = roomData.messages || loadState(`chat_${GameState.roomCode}`) || [];
+            const chatMessages = document.getElementById('chatMessages');
+            if (chatMessages && remoteMessages.length > chatMessages.children.length) {
+                const myName = GameState.isOnlineHost ? GameState.player1Name : GameState.player2Name;
+                for (let i = chatMessages.children.length; i < remoteMessages.length; i++) {
+                    const msg = remoteMessages[i];
+                    if (msg.sender !== myName) {
+                        const msgDiv = document.createElement('div');
+                        msgDiv.className = 'chat-message';
+                        msgDiv.textContent = `${msg.sender}: ${msg.text}`;
+                        chatMessages.appendChild(msgDiv);
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                    }
+                }
             }
         }
     }
-}, 1000);
+}, 800);
+
 
 // Setup click handlers for buttons
 document.querySelectorAll('.mode-btn').forEach(btn => {

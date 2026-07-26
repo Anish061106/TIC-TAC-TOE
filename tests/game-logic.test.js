@@ -142,3 +142,30 @@ test('5. Prevention of duplicate game result updates', () => {
     assert.equal(secondAdd, false, 'Duplicate record within 5 seconds must be rejected');
     assert.equal(history.length, 1, 'History length should remain 1');
 });
+
+test('6. Room code normalization - uppercase and trimmed', () => {
+    function normalizeRoomCode(input) {
+        return input ? input.trim().toUpperCase() : '';
+    }
+    assert.equal(normalizeRoomCode('  abc123  '), 'ABC123');
+    assert.equal(normalizeRoomCode('xyz'), 'XYZ');
+});
+
+test('7. Immediate room state initialization on creation', () => {
+    function createInitialRoomState(roomCode, hostName) {
+        return {
+            roomCode: roomCode.trim().toUpperCase(),
+            player1Name: hostName.trim() || 'Player 1',
+            player2Name: null,
+            board: ['', '', '', '', '', '', '', '', ''],
+            currentPlayer: 'X'
+        };
+    }
+
+    const room = createInitialRoomState(' test-room ', 'Alice');
+    assert.equal(room.roomCode, 'TEST-ROOM');
+    assert.equal(room.player1Name, 'Alice');
+    assert.equal(room.player2Name, null);
+    assert.equal(room.board.length, 9);
+});
+
